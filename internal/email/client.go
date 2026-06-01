@@ -20,7 +20,7 @@ type emailClient struct {
 	dialer *mail.Dialer
 }
 
-func NewSmtpClient(cfg *config.SMTP) EmailClient {
+func NewEmailClient(cfg *config.SMTP) EmailClient {
 	dialer := mail.NewDialer(cfg.Host, cfg.Port, cfg.User, cfg.Password)
 	dialer.TLSConfig = &tls.Config{
 		ServerName:         cfg.Host,

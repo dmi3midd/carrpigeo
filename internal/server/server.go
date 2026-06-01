@@ -7,17 +7,23 @@ import (
 
 	"carrpigeo/internal/config"
 	"carrpigeo/internal/database"
+	"carrpigeo/internal/email"
 )
 
 type Server struct {
-	db  database.DBService
-	cfg *config.Config
+	db           database.DBService
+	cfg          *config.Config
+	emailService email.EmailService
 }
 
 func NewServer(cfg *config.Config, db database.DBService) *http.Server {
+	emailRepository := email.NewEmailRepository(db.GetDB())
+	emailClient := email.NewEmailClient(&cfg.SMTP)
+	emailService := email.NewEmailService(emailClient, emailRepository)
 	s := &Server{
-		db:  db,
-		cfg: cfg,
+		db:           db,
+		cfg:          cfg,
+		emailService: emailService,
 	}
 
 	router := s.RegisterRoutes()

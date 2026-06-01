@@ -10,9 +10,17 @@ func (s *Server) RegisterRoutes() http.Handler {
 	mux := http.NewServeMux()
 
 	// Register routes
-	mux.HandleFunc("/", s.HelloWorldHandler)
 
-	mux.HandleFunc("/health", s.healthHandler)
+	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("carrpigeo server is running"))
+	})
+
+	mux.HandleFunc("GET /health", s.healthHandler)
+
+	mux.HandleFunc("POST /send/email", s.sendEmailHandler)
+
+	mux.HandleFunc("POST /send/email/many", s.sendEmailManyHandler)
 
 	// Wrap the mux with CORS middleware
 	return s.corsMiddleware(mux)
@@ -37,19 +45,6 @@ func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) HelloWorldHandler(w http.ResponseWriter, r *http.Request) {
-	resp := map[string]string{"message": "Hello World"}
-	jsonResp, err := json.Marshal(resp)
-	if err != nil {
-		http.Error(w, "Failed to marshal response", http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	if _, err := w.Write(jsonResp); err != nil {
-		log.Printf("Failed to write response: %v", err)
-	}
-}
-
 func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) {
 	resp, err := json.Marshal(s.db.Health())
 	if err != nil {
@@ -60,4 +55,50 @@ func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(resp); err != nil {
 		log.Printf("Failed to write response: %v", err)
 	}
+}
+
+type EmailRequest struct {
+	To      string `json:"to"`
+	Subject string `json:"subject"`
+	Body    string `json:"body"`
+}
+
+func (s *Server) sendEmailHandler(w http.ResponseWriter, r *http.Request) {
+	var req EmailRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Failed to decode request", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	ctx := r.Context()
+	if err := s.emailService.Send(ctx, req.To, req.Subject, req.Body); err != nil {
+		http.Error(w, "Failed to send email", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+}
+
+type EmailManyRequest struct {
+	Recipients []string `json:"recipients"`
+	Subject    string   `json:"subject"`
+	Body       string   `json:"body"`
+}
+
+func (s *Server) sendEmailManyHandler(w http.ResponseWriter, r *http.Request) {
+	var req EmailManyRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Failed to decode request", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	ctx := r.Context()
+	if err := s.emailService.SendMany(ctx, req.Recipients, req.Subject, req.Body); err != nil {
+		http.Error(w, "Failed to send email", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
 }
