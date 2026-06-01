@@ -1,39 +1,31 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
-	"os"
-	"strconv"
-	"time"
 
 	_ "github.com/joho/godotenv/autoload"
 
+	"carrpigeo/internal/config"
 	"carrpigeo/internal/database"
 )
 
 type Server struct {
-	port int
-
-	db database.Service
+	db  database.DBService
+	cfg *config.Config
 }
 
-func NewServer() *http.Server {
-	port, _ := strconv.Atoi(os.Getenv("PORT"))
-	NewServer := &Server{
-		port: port,
-
-		db: database.New(),
+func NewServer(cfg *config.Config, db database.DBService) *http.Server {
+	s := &Server{
+		db:  db,
+		cfg: cfg,
 	}
 
-	// Declare Server config
-	server := &http.Server{
-		Addr:         fmt.Sprintf(":%d", NewServer.port),
-		Handler:      NewServer.RegisterRoutes(),
-		IdleTimeout:  time.Minute,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 30 * time.Second,
+	router := s.RegisterRoutes()
+	return &http.Server{
+		Addr:         cfg.HTTPServer.Address,
+		Handler:      router,
+		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+		ReadTimeout:  cfg.HTTPServer.ReadTimeout,
+		WriteTimeout: cfg.HTTPServer.WriteTimeout,
 	}
-
-	return server
 }

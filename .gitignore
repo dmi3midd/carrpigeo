@@ -32,3 +32,8 @@ main
 # OS X generated file
 .DS_Store
 
+# configs
+config.yaml
+
+# logs
+carrpigeo.log

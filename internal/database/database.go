@@ -1,20 +1,22 @@
 package database
 
 import (
+	"carrpigeo/internal/config"
+	"carrpigeo/migrations"
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/pressly/goose/v3"
 )
 
 // Service represents a service that interacts with a database.
-type Service interface {
+type DBService interface {
 	// Health returns a map of health status information.
 	// The keys and values in the map are service-specific.
 	Health() map[string]string
@@ -22,41 +24,40 @@ type Service interface {
 	// Close terminates the database connection.
 	// It returns an error if the connection cannot be closed.
 	Close() error
+
+	// GetDB returns the database connection pool.
+	GetDB() *sqlx.DB
 }
 
-type service struct {
-	db *sql.DB
+type dbService struct {
+	cfg *config.Database
+	db  *sqlx.DB
 }
 
-var (
-	database   = os.Getenv("BLUEPRINT_DB_DATABASE")
-	password   = os.Getenv("BLUEPRINT_DB_PASSWORD")
-	username   = os.Getenv("BLUEPRINT_DB_USERNAME")
-	port       = os.Getenv("BLUEPRINT_DB_PORT")
-	host       = os.Getenv("BLUEPRINT_DB_HOST")
-	schema     = os.Getenv("BLUEPRINT_DB_SCHEMA")
-	dbInstance *service
-)
-
-func New() Service {
-	// Reuse Connection
-	if dbInstance != nil {
-		return dbInstance
-	}
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=%s", username, password, host, port, database, schema)
-	db, err := sql.Open("pgx", connStr)
+func New(cfg *config.Database) (DBService, error) {
+	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s", cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Name, cfg.SSLMode)
+	db, err := sqlx.Connect("pgx", connStr)
 	if err != nil {
 		log.Fatal(err)
 	}
-	dbInstance = &service{
-		db: db,
+
+	goose.SetBaseFS(migrations.FS)
+	if err := goose.SetDialect("postgres"); err != nil {
+		log.Fatal(err)
 	}
-	return dbInstance
+	if err := goose.Up(db.DB, "."); err != nil {
+		log.Fatal(err)
+	}
+
+	return &dbService{
+		cfg: cfg,
+		db:  db,
+	}, nil
 }
 
 // Health checks the health of the database connection by pinging the database.
 // It returns a map with keys indicating various health statistics.
-func (s *service) Health() map[string]string {
+func (s *dbService) Health() map[string]string {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
@@ -109,7 +110,12 @@ func (s *service) Health() map[string]string {
 // It logs a message indicating the disconnection from the specific database.
 // If the connection is successfully closed, it returns nil.
 // If an error occurs while closing the connection, it returns the error.
-func (s *service) Close() error {
-	log.Printf("Disconnected from database: %s", database)
+func (s *dbService) Close() error {
+	log.Printf("Disconnected from database: %s", s.cfg.Name)
 	return s.db.Close()
+}
+
+// GetDB returns the database connection pool.
+func (s *dbService) GetDB() *sqlx.DB {
+	return s.db
 }

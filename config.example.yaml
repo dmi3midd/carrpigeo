@@ -1,0 +1,22 @@
+database:
+  name: carrpigeo
+  host: localhost
+  port: 5432
+  user: your_username
+  password: your_password
+  sslmode: disable
+  maxOpenConns: 10
+  maxIdleConns: 10
+  maxIdleTime: 15m
+httpServer:
+  address: 0.0.0.0:2500
+  idleTimeout: 90s
+  readTimeout: 10s
+  writeTimeout: 20s
+smtp:
+  host: smtp.gmail.com
+  port: 587
+  user: carrpigeo
+  password: carrpigeo12345
+log:
+  logPath: ./storage/carrpigeo.log
