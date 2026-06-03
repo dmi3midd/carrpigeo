@@ -1,9 +1,9 @@
 database:
   name: carrpigeo
-  host: localhost
+  host: postgres
   port: 5432
-  user: your_username
-  password: your_password
+  user: carrpigeo_user
+  password: carrpigeo_9876
   sslmode: disable
   maxOpenConns: 10
   maxIdleConns: 10
@@ -16,7 +16,7 @@ httpServer:
 smtp:
   host: smtp.gmail.com
   port: 587
-  user: carrpigeo
-  password: carrpigeo12345
+  user: [EMAIL_ADDRESS]
+  password: [PASSWORD]
 log:
   logPath: ./storage/carrpigeo.log
