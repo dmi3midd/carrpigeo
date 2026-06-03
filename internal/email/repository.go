@@ -9,11 +9,12 @@ import (
 )
 
 var (
-	ErrNoEmail = errors.New("email not found")
+	ErrFailedToCreateEmail = errors.New("failed to create email")
 )
 
 type EmailRepository interface {
-	// Create creates email in db
+	// Create creates email in db.
+	// Returns [ErrFailedToCreateEmail] if failed to create email.
 	Create(ctx context.Context, email *Email) error
 }
 
@@ -35,7 +36,7 @@ func (r *emailRepository) Create(ctx context.Context, email *Email) error {
 	`
 	_, err := r.DB.NamedExecContext(ctx, query, email)
 	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("%s: %w: %w", op, ErrFailedToCreateEmail, err)
 	}
 	return nil
 }

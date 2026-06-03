@@ -47,7 +47,6 @@ func (c *emailClient) Send(email *Email) error {
 	msg := c.buildMessage(email)
 
 	if err := c.dialer.DialAndSend(msg); err != nil {
-		fmt.Println("Error sending email:", err)
 		return fmt.Errorf("%s: %w", op, err)
 	}
 

@@ -1,8 +1,8 @@
 package server
 
 import (
+	errs "carrpigeo/internal/errors"
 	"encoding/json"
-	"log"
 	"net/http"
 )
 
@@ -16,9 +16,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 		w.Write([]byte("carrpigeo server is running"))
 	})
 
-	mux.HandleFunc("GET /health", s.healthHandler)
+	mux.HandleFunc("GET /health", errs.ErrorHandler(s.healthHandler))
 
-	mux.HandleFunc("POST /send/email", s.sendEmailHandler)
+	mux.HandleFunc("POST /send/email", errs.ErrorHandler(s.sendEmailHandler))
 
 	// Wrap the mux with CORS middleware
 	return s.corsMiddleware(mux)
@@ -43,16 +43,17 @@ func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) error {
 	resp, err := json.Marshal(s.db.Health())
 	if err != nil {
-		http.Error(w, "Failed to marshal health check response", http.StatusInternalServerError)
-		return
+		return errs.NewInternalServerError(err)
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if _, err := w.Write(resp); err != nil {
-		log.Printf("Failed to write response: %v", err)
+		return errs.NewInternalServerError(err)
 	}
+
+	return nil
 }
 
 type EmailRequest struct {
@@ -61,19 +62,18 @@ type EmailRequest struct {
 	Body    string `json:"body"`
 }
 
-func (s *Server) sendEmailHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) sendEmailHandler(w http.ResponseWriter, r *http.Request) error {
 	var req EmailRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Failed to decode request", http.StatusBadRequest)
-		return
+		return errs.NewBadRequestError(err, "Failed to decode request")
 	}
 	defer r.Body.Close()
 
 	ctx := r.Context()
 	if err := s.emailService.Send(ctx, req.To, req.Subject, req.Body); err != nil {
-		http.Error(w, "Failed to send email: "+err.Error(), http.StatusInternalServerError)
-		return
+		return errs.NewInternalServerError(err)
 	}
 
 	w.WriteHeader(http.StatusAccepted)
+	return nil
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"carrpigeo/internal/config"
 	"carrpigeo/internal/database"
+	"carrpigeo/internal/logs"
 	"carrpigeo/internal/server"
 	"context"
 	"log"
@@ -47,6 +48,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
+
+	logFile, err := logs.Setup(cfg.Log.LogPath)
+	if err != nil {
+		log.Fatalf("failed to setup logger: %v", err)
+	}
+	defer logFile.Close()
 
 	db, err := database.New(&cfg.Database)
 	if err != nil {

@@ -28,8 +28,7 @@ services:
       - "2500:2500"
     volumes:
       - ./config.yaml:/app/config.yaml:ro
-      - app_logs:/app/storage
+      - ./storage:/app/storage
 
 volumes:
   postgres_data:
-  app_logs:
