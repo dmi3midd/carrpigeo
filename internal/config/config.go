@@ -24,6 +24,11 @@ type HTTPServer struct {
 	IdleTimeout  time.Duration `mapstructure:"idleTimeout"`
 	ReadTimeout  time.Duration `mapstructure:"readTimeout"`
 	WriteTimeout time.Duration `mapstructure:"writeTimeout"`
+	CORS         CORS          `mapstructure:"cors"`
+}
+
+type CORS struct {
+	AllowedOrigins []string `mapstructure:"allowedOrigins"`
 }
 
 type SMTP struct {

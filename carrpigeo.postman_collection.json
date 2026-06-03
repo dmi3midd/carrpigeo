@@ -7,42 +7,6 @@
 	},
 	"item": [
 		{
-			"name": "Root Check",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"pm.test(\"Body indicates server is running\", function () {",
-							"    pm.response.to.have.body(\"carrpigeo server is running\");",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						""
-					]
-				},
-				"description": "Checks if the Carrpigeo server is running."
-			},
-			"response": []
-		},
-		{
 			"name": "Health Check",
 			"event": [
 				{

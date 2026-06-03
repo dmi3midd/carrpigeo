@@ -4,17 +4,13 @@ import (
 	errs "carrpigeo/internal/errors"
 	"encoding/json"
 	"net/http"
+	"slices"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
 	mux := http.NewServeMux()
 
 	// Register routes
-
-	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("carrpigeo server is running"))
-	})
 
 	mux.HandleFunc("GET /health", errs.ErrorHandler(s.healthHandler))
 
@@ -25,12 +21,16 @@ func (s *Server) RegisterRoutes() http.Handler {
 }
 
 func (s *Server) corsMiddleware(next http.Handler) http.Handler {
+	allowedOrigins := s.cfg.HTTPServer.CORS.AllowedOrigins
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Set CORS headers
-		w.Header().Set("Access-Control-Allow-Origin", "*") // Replace "*" with specific origins if needed
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-		w.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type, X-CSRF-Token")
-		w.Header().Set("Access-Control-Allow-Credentials", "false") // Set to "true" if credentials are required
+		origin := r.Header.Get("Origin")
+
+		if origin != "" && slices.Contains(allowedOrigins, origin) {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type")
+		}
 
 		// Handle preflight OPTIONS requests
 		if r.Method == http.MethodOptions {
