@@ -19,7 +19,7 @@ type Server struct {
 func NewServer(cfg *config.Config, db database.DBService) *http.Server {
 	emailRepository := email.NewEmailRepository(db.GetDB())
 	emailClient := email.NewEmailClient(&cfg.SMTP)
-	emailService := email.NewEmailService(emailClient, emailRepository)
+	emailService := email.NewEmailService(emailClient, emailRepository, &cfg.SMTP)
 	s := &Server{
 		db:           db,
 		cfg:          cfg,

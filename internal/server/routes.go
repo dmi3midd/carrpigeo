@@ -20,8 +20,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	mux.HandleFunc("POST /send/email", s.sendEmailHandler)
 
-	mux.HandleFunc("POST /send/email/many", s.sendEmailManyHandler)
-
 	// Wrap the mux with CORS middleware
 	return s.corsMiddleware(mux)
 }
@@ -73,30 +71,7 @@ func (s *Server) sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	if err := s.emailService.Send(ctx, req.To, req.Subject, req.Body); err != nil {
-		http.Error(w, "Failed to send email", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusAccepted)
-}
-
-type EmailManyRequest struct {
-	Recipients []string `json:"recipients"`
-	Subject    string   `json:"subject"`
-	Body       string   `json:"body"`
-}
-
-func (s *Server) sendEmailManyHandler(w http.ResponseWriter, r *http.Request) {
-	var req EmailManyRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Failed to decode request", http.StatusBadRequest)
-		return
-	}
-	defer r.Body.Close()
-
-	ctx := r.Context()
-	if err := s.emailService.SendMany(ctx, req.Recipients, req.Subject, req.Body); err != nil {
-		http.Error(w, "Failed to send email", http.StatusInternalServerError)
+		http.Error(w, "Failed to send email: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
