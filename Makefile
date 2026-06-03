@@ -1,5 +1,9 @@
 # Simple Makefile for a Go project
 
+setup:
+	@chmod +x setup.sh
+	@./setup.sh
+
 build:
 	@echo "Building..."
 	@go build -o main cmd/api/main.go

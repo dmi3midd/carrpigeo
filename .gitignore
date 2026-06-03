@@ -35,5 +35,6 @@ main
 # configs
 config.yaml
 
-# logs
-carrpigeo.log
+# storage
+storage/
+
