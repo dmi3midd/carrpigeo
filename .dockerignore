@@ -1,0 +1,36 @@
+# Binaries
+main
+*.exe
+*.dll
+*.so
+*.dylib
+
+# IDE
+.vscode
+.idea
+.gemini
+
+# Git
+.git
+.gitignore
+
+# OS
+.DS_Store
+
+# Temporary files
+tmp/
+
+# Air config (dev only)
+.air.toml
+
+# Logs
+*.log
+storage/
+
+# Docker
+Dockerfile
+docker-compose.yaml
+.dockerignore
+
+# Config (mounted at runtime)
+config.yaml
