@@ -1,53 +1,170 @@
-# Project carrpigeo
+<p align="center">
+  <img src="assets/logo.png" alt="carrpigeo logo" width="300">
+</p>
 
-One Paragraph of project description goes here
+# Carrpigeo
+
+Carrpigeo is a lightweight email sending API built with Go. It sends emails via SMTP and stores every sent message in a PostgreSQL database.
+
+## Prerequisites
+
+- [Go](https://go.dev/dl/) 1.26+
+- [PostgreSQL](https://www.postgresql.org/download/) 17+ (local install **or** Docker)
+- [Docker & Docker Compose](https://docs.docker.com/get-docker/) (optional — for containerized setup)
+- SMTP credentials (e.g. Gmail [App Password](https://support.google.com/accounts/answer/185833))
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+### 1. Clone the repository
 
-## MakeFile
-
-Run build make command with tests
 ```bash
-make all
+git clone https://github.com/dmi3midd/carrpigeo.git
+cd carrpigeo
 ```
 
-Build the application
+### 2. Run the setup script
+
+This creates the `storage/` directory, copies `config.example.yaml` → `config.yaml`, and creates the log file:
+
 ```bash
-make build
+make setup
 ```
 
-Run the application
+### 3. Configure
+
+Edit `config.yaml` with your credentials:
+
+```yaml
+# Configure it for you.
+database:
+  name: carrpigeo
+  host: postgres
+  port: 5432
+  user: carrpigeo_user
+  password: carrpigeo_9876
+  sslmode: disable
+  maxOpenConns: 10
+  maxIdleConns: 10
+  maxIdleTime: 15m
+
+httpServer:
+  address: 0.0.0.0:2500
+
+smtp:
+  host: smtp.gmail.com
+  port: 587
+  user: your-email@gmail.com
+  password: your-app-password
+
+log:
+  logPath: ./storage/carrpigeo.log
+```
+
+> **Note:** For Gmail, you need to generate an [App Password](https://support.google.com/accounts/answer/185833) — regular account passwords won't work with SMTP.
+
+## Running the Project
+
+### Option A: Local (without Docker)
+
+> **Note** Make sure PostgreSQL is running locally and the database exist.
+
+Run:
+
 ```bash
 make run
 ```
-Create DB container
-```bash
-make docker-run
-```
 
-Shutdown DB Container
-```bash
-make docker-down
-```
+Or use `air` for auto-reloading:
 
-DB Integrations Test:
-```bash
-make itest
-```
-
-Live reload the application:
 ```bash
 make watch
 ```
 
-Run the test suite:
+The server starts on `http://localhost:2500`.
+
+### Option B: Docker — app + PostgreSQL (Recommended if you don't have PostgreSQL DB)
+
+Set `host: postgres` in `config.yaml`, then:
+
 ```bash
-make test
+make docker-run-all
 ```
 
-Clean up binary from the last build:
+This spins up both the app and a PostgreSQL container. Migrations run automatically on startup.
+
+### Option C: Docker — app only (external PostgreSQL)
+
+If PostgreSQL is already running on your machine, set `host: host.docker.internal` in `config.yaml`, then:
+
 ```bash
-make clean
+make docker-run
 ```
+
+This starts only the app container; it connects to your host's PostgreSQL.
+
+## API Endpoints
+
+### `GET /health`
+
+Returns database health status.
+
+**Response:** `200 OK`
+
+```json
+{
+    "idle": "1",
+    "in_use": "0",
+    "max_idle_closed": "0",
+    "max_lifetime_closed": "0",
+    "message": "It's healthy",
+    "open_connections": "1",
+    "status": "up",
+    "wait_count": "0",
+    "wait_duration": "0s"
+}
+```
+
+---
+
+### `POST /send/email`
+
+Sends an email and saves it to the database.
+
+**Request body:**
+
+```json
+{
+  "to": "recipient@example.com",
+  "subject": "Hello",
+  "body": "This is the email body"
+}
+```
+
+**Response:** `202 Accepted`
+
+**Error responses:**
+
+| Code | Description |
+|------|-------------|
+| 400  | Invalid request body |
+| 500  | Failed to send email or save to database |
+
+## Make Targets
+
+| Command | Description |
+|---------|-------------|
+| `make setup` | Initialize project (directories, config, log file) |
+| `make build` | Compile the binary |
+| `make run` | Run the application locally |
+| `make watch` | Live reload with [air](https://github.com/air-verse/air) |
+| `make clean` | Remove the compiled binary |
+| `make docker-run-all` | Start app + PostgreSQL in Docker |
+| `make docker-run` | Start app only in Docker (external DB) |
+| `make docker-down` | Stop all Docker containers |
+| `make docker-logs` | Follow app container logs |
+
+## Project Structure
+
+## License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
