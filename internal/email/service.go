@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/rs/xid"
@@ -46,9 +47,25 @@ func (s *emailService) Send(ctx context.Context, to, subject, body string) error
 		Body:     body,
 		SentAt:   time.Now(),
 	}
-	if err := s.client.Send(&email); err != nil {
-		return fmt.Errorf("%s: %w: %w", op, ErrFailedToSendEmail, err)
-	}
+
+	go func() {
+		if err := s.client.Send(&email); err != nil {
+			slog.Error(
+				"failed to send email",
+				slog.String("id", email.ID),
+				slog.String("to", email.Reciever),
+				slog.Time("sent_at", email.SentAt),
+				slog.String("error", err.Error()),
+			)
+		} else {
+			slog.Info(
+				"email sent successfully",
+				slog.String("id", email.ID),
+				slog.String("to", email.Reciever),
+				slog.Time("sent_at", email.SentAt),
+			)
+		}
+	}()
 
 	if err := s.repository.Create(ctx, &email); err != nil {
 		return fmt.Errorf("%s: %w: %w", op, ErrFailedToSaveEmail, err)
