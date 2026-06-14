@@ -14,6 +14,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 	mux.HandleFunc("GET /health", errs.ErrorHandler(s.healthHandler))
 
 	mux.HandleFunc("POST /send/email", errs.ErrorHandler(s.sendEmailHandler))
+	mux.HandleFunc("POST /send/email/template", errs.ErrorHandler(s.sendEmailWithTemplateHandler))
+
+	mux.HandleFunc("POST /templates", errs.ErrorHandler(s.CreateHTMLTemplateHandler))
+	mux.HandleFunc("DELETE /templates", errs.ErrorHandler(s.RemoveHTMLTemplateHandler))
 
 	// Wrap the mux with CORS middleware
 	return s.corsMiddleware(mux)

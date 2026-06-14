@@ -1,0 +1,78 @@
+package htmltemplate
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"fmt"
+
+	"github.com/jmoiron/sqlx"
+)
+
+var (
+	ErrNoTemplate = errors.New("no html template in repository")
+)
+
+type HTMLTemplateRepository interface {
+	// GetByID returns html template by id.
+	// Returns [ErrNoTemplate] if html template not found.
+	GetByID(ctx context.Context, id string) (*HTMLTemplate, error)
+	// Create creates template in db.
+	Create(ctx context.Context, template *HTMLTemplate) error
+	// Delete deletes template from db.
+	Delete(ctx context.Context, id string) error
+}
+
+type htmlTemplateRepository struct {
+	db *sqlx.DB
+}
+
+func NewHTMLTemplateRepository(db *sqlx.DB) HTMLTemplateRepository {
+	return &htmlTemplateRepository{
+		db: db,
+	}
+}
+
+func (r *htmlTemplateRepository) GetByID(ctx context.Context, id string) (*HTMLTemplate, error) {
+	op := "HTMLTemplateRepository.GetByID"
+	var tmpl HTMLTemplate
+	query := `
+	SELECT id, name, content, created_at
+	FROM html_templates
+	WHERE id = $1
+	`
+	err := r.db.GetContext(ctx, &tmpl, query, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("%s: %w", op, ErrNoTemplate)
+		}
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	return &tmpl, nil
+}
+
+func (r *htmlTemplateRepository) Create(ctx context.Context, template *HTMLTemplate) error {
+	op := "HTMLTemplateRepository.Create"
+	query := `
+	INSERT INTO html_templates (id, name, content, created_at)
+	VALUES (:id, :name, :content, :created_at)
+	`
+	_, err := r.db.NamedExecContext(ctx, query, template)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	return nil
+}
+
+func (r *htmlTemplateRepository) Delete(ctx context.Context, id string) error {
+	op := "HTMLTemplateRepository.Delete"
+	query := `
+	DELETE FROM html_templates
+	WHERE id = $1
+	`
+	_, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	return nil
+}

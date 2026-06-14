@@ -37,7 +37,11 @@ func (c *emailClient) buildMessage(email *Email) *mail.Message {
 	msg.SetHeader("From", c.config.User)
 	msg.SetHeader("To", email.Reciever)
 	msg.SetHeader("Subject", email.Subject)
-	msg.SetBody("text/plain", email.Body)
+	contentType := "text/plain"
+	if email.IsHTML {
+		contentType = "text/html"
+	}
+	msg.SetBody(contentType, email.Body)
 	return msg
 }
 

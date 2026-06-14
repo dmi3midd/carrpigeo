@@ -8,5 +8,6 @@ type Email struct {
 	Reciever string    `json:"reciever" db:"reciever"`
 	Subject  string    `json:"subject" db:"subject"`
 	Body     string    `json:"body" db:"body"`
+	IsHTML   bool      `json:"is_html" db:"is_html"`
 	SentAt   time.Time `json:"sent_at" db:"sent_at"`
 }

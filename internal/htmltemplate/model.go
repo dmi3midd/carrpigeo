@@ -1,8 +1,8 @@
-package htmlpattern
+package htmltemplate
 
 import "time"
 
-type HTMLPattern struct {
+type HTMLTemplate struct {
 	ID        string    `json:"id" db:"id"`
 	Name      string    `json:"name" db:"name"`
 	Content   string    `json:"content" db:"content"`
