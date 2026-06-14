@@ -149,6 +149,94 @@ Sends an email and saves it to the database.
 | 400  | Invalid request body |
 | 500  | Failed to send email or save to database |
 
+---
+
+### `POST /templates`
+
+Uploads and registers a new HTML template.
+
+**Request:** `multipart/form-data`
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `name`    | text | The name of the HTML template |
+| `file`    | file | HTML file containing template placeholders (e.g. `{{.Name}}`) |
+
+**Response:** `202 Accepted`
+
+```json
+{
+  "id": "cno3c9u8u1401p0q7sdg"
+}
+```
+
+---
+
+### `DELETE /templates`
+
+Deletes a registered HTML template by ID.
+
+**Query Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `id`  | string | Yes | The ID of the HTML template to delete |
+
+**Response:** `200 OK`
+
+---
+
+### `POST /send/email/template`
+
+Sends an email using a registered HTML template and performs dynamic data insertion.
+
+**Request body:**
+
+```json
+{
+  "to": "recipient@example.com",
+  "subject": "Welcome!",
+  "template_id": "cno3c9u8u1401p0q7sdg",
+  "data": {
+    "Name": "John Doe",
+    "PromoCode": "WELCOME2026"
+  }
+}
+```
+
+**Response:** `202 Accepted`
+
+#### Template Syntax & Dynamic Variables
+
+Inside your HTML template files, you can define placeholders using Go's `html/template` syntax. Placeholders must be prefixed with a dot `.` followed by the field/key name, wrapped in double curly braces: `{{.FieldName}}`.
+
+For example, if you upload a template file containing:
+```html
+<h1>Hello, {{.Name}}!</h1>
+<p>Your promotional code is: <strong>{{.PromoCode}}</strong></p>
+```
+
+You can populate these values by sending them in the `data` field of the `POST /send/email/template` request:
+```json
+{
+  "to": "recipient@example.com",
+  "subject": "Your Promo Code",
+  "template_id": "cno3c9u8u1401p0q7sdg",
+  "data": {
+    "Name": "John Doe",
+    "PromoCode": "WELCOME2026"
+  }
+}
+```
+*Note: The keys in the JSON `data` object must match the placeholder names exactly (case-sensitive).*
+
+**Error responses:**
+
+| Code | Description |
+|------|-------------|
+| 400  | Invalid request body or missing required fields |
+| 500  | Failed to retrieve template, parse/execute template, send email, or save to database |
+
 ## Make Targets
 
 | Command | Description |
