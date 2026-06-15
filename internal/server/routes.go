@@ -1,7 +1,7 @@
 package server
 
 import (
-	errs "carrpigeo/internal/errors"
+	errs "carrpigeo/internal/apierrors"
 	"encoding/json"
 	"net/http"
 )
@@ -13,8 +13,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	mux.HandleFunc("GET /health", errs.ErrorHandler(s.healthHandler))
 
-	mux.HandleFunc("POST /send/email", errs.ErrorHandler(s.sendEmailHandler))
-	mux.HandleFunc("POST /send/email/template", errs.ErrorHandler(s.sendEmailWithTemplateHandler))
+	mux.HandleFunc("POST /send/email", errs.ErrorHandler(s.SendEmailHandler))
+	mux.HandleFunc("POST /send/email/template", errs.ErrorHandler(s.SendEmailWithTemplateHandler))
 
 	mux.HandleFunc("POST /templates", errs.ErrorHandler(s.CreateHTMLTemplateHandler))
 	mux.HandleFunc("DELETE /templates", errs.ErrorHandler(s.RemoveHTMLTemplateHandler))

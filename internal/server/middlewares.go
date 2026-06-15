@@ -13,7 +13,7 @@ func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 
 		if origin != "" && slices.Contains(allowedOrigins, origin) {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE")
 			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type")
 		}
 

@@ -1,7 +1,7 @@
 package server
 
 import (
-	errs "carrpigeo/internal/errors"
+	errs "carrpigeo/internal/apierrors"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,7 +13,7 @@ type EmailRequest struct {
 	Body    string `json:"body"`
 }
 
-func (s *Server) sendEmailHandler(w http.ResponseWriter, r *http.Request) error {
+func (s *Server) SendEmailHandler(w http.ResponseWriter, r *http.Request) error {
 	var req EmailRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return errs.NewBadRequestError(err, "Failed to decode request")
@@ -85,7 +85,7 @@ type SendEmailWithTemplateRequest struct {
 	Data       interface{} `json:"data"`
 }
 
-func (s *Server) sendEmailWithTemplateHandler(w http.ResponseWriter, r *http.Request) error {
+func (s *Server) SendEmailWithTemplateHandler(w http.ResponseWriter, r *http.Request) error {
 	var req SendEmailWithTemplateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return errs.NewBadRequestError(err, "Failed to decode request")
