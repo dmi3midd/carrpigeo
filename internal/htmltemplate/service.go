@@ -1,6 +1,7 @@
 package htmltemplate
 
 import (
+	"carrpigeo/internal/utils"
 	"context"
 	"errors"
 	"fmt"
@@ -13,16 +14,17 @@ import (
 
 var (
 	ErrTemplateNotFound = errors.New("html template not found")
-	ErrTemplateExists   = errors.New("html template already exists")
-	ErrFailedToReadFile = errors.New("failed to read file")
+	ErrInvalidFileType  = errors.New("invalid file type")
 )
 
 type HTMLTemplateService interface {
 	// Save saves html template in db.
+	// Returns [ErrInvalidFileType] if file type is not text/html.
 	Save(ctx context.Context, name string, file *multipart.File) (string, error)
 	// Remove removes html template from db.
 	Remove(ctx context.Context, id string) error
 	// GetByID returns html template by id.
+	// Returns [ErrTemplateNotFound] if template not found.
 	GetByID(ctx context.Context, id string) (*HTMLTemplate, error)
 }
 
@@ -39,9 +41,17 @@ func NewHTMLTemplateService(repo HTMLTemplateRepository) HTMLTemplateService {
 func (s *htmlTemplateService) Save(ctx context.Context, name string, file *multipart.File) (string, error) {
 	op := "HTMLTemplateService.Create"
 
+	mimeType, err := utils.DetectType(*file)
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+	if mimeType != "text/html" {
+		return "", fmt.Errorf("%s: %w", op, ErrInvalidFileType)
+	}
+
 	contentBytes, err := io.ReadAll(*file)
 	if err != nil {
-		return "", fmt.Errorf("%s: %w", op, ErrFailedToReadFile)
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
 	id := xid.New().String()
@@ -71,6 +81,9 @@ func (s *htmlTemplateService) GetByID(ctx context.Context, id string) (*HTMLTemp
 	op := "HTMLTemplateService.GetByID"
 	tmpl, err := s.repo.GetByID(ctx, id)
 	if err != nil {
+		if errors.Is(err, ErrNoTemplate) {
+			return nil, fmt.Errorf("%s: %w", op, ErrTemplateNotFound)
+		}
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	return tmpl, nil

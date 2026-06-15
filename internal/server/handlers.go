@@ -2,7 +2,9 @@ package server
 
 import (
 	errs "carrpigeo/internal/apierrors"
+	"carrpigeo/internal/htmltemplate"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -34,6 +36,8 @@ type CreateHTMLTemplateResponse struct {
 }
 
 func (s *Server) CreateHTMLTemplateHandler(w http.ResponseWriter, r *http.Request) error {
+	r.Body = http.MaxBytesReader(w, r.Body, 512<<10)
+
 	if err := r.ParseMultipartForm(256 << 10); err != nil {
 		return errs.NewInternalServerError(fmt.Errorf("Failed to parse multipart form: %w", err))
 	}
@@ -50,6 +54,9 @@ func (s *Server) CreateHTMLTemplateHandler(w http.ResponseWriter, r *http.Reques
 	ctx := r.Context()
 	id, err := s.templateService.Save(ctx, name, &file)
 	if err != nil {
+		if errors.Is(err, htmltemplate.ErrInvalidFileType) {
+			return errs.NewBadRequestError(err, "Invalid file type")
+		}
 		return errs.NewInternalServerError(err)
 	}
 
