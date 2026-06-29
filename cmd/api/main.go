@@ -2,8 +2,8 @@ package main
 
 import (
 	"carrpigeo/internal/config"
-	"carrpigeo/internal/database"
 	"carrpigeo/internal/logs"
+	"carrpigeo/internal/postgres"
 	"carrpigeo/internal/server"
 	"context"
 	"log"
@@ -55,7 +55,7 @@ func main() {
 	}
 	defer logFile.Close()
 
-	db, err := database.New(&cfg.Database)
+	db, err := postgres.New(&cfg.Database)
 	if err != nil {
 		slog.Error("failed to initialize database", "error", err)
 		os.Exit(1)

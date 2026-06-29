@@ -1,7 +1,8 @@
-package email
+package service
 
 import (
 	"carrpigeo/internal/config"
+	"carrpigeo/internal/domain"
 	"crypto/tls"
 	"fmt"
 
@@ -10,7 +11,7 @@ import (
 
 type EmailClient interface {
 	// Send sends a single email.
-	Send(email *Email) error
+	Send(email *domain.Email) error
 }
 
 type emailClient struct {
@@ -32,7 +33,7 @@ func NewEmailClient(cfg *config.SMTP) EmailClient {
 }
 
 // buildMessage creates a new mail.Message from an Email struct.
-func (c *emailClient) buildMessage(email *Email) *mail.Message {
+func (c *emailClient) buildMessage(email *domain.Email) *mail.Message {
 	msg := mail.NewMessage()
 	msg.SetHeader("From", c.config.User)
 	msg.SetHeader("To", email.Reciever)
@@ -45,7 +46,7 @@ func (c *emailClient) buildMessage(email *Email) *mail.Message {
 	return msg
 }
 
-func (c *emailClient) Send(email *Email) error {
+func (c *emailClient) Send(email *domain.Email) error {
 	op := "SmtpClient.Send"
 
 	msg := c.buildMessage(email)

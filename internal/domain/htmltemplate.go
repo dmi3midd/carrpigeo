@@ -1,4 +1,4 @@
-package htmltemplate
+package domain
 
 import "time"
 

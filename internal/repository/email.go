@@ -1,6 +1,7 @@
-package email
+package repository
 
 import (
+	"carrpigeo/internal/domain"
 	"context"
 	"errors"
 	"fmt"
@@ -15,7 +16,7 @@ var (
 type EmailRepository interface {
 	// Create creates email in db.
 	// Returns [ErrFailedToCreateEmail] if failed to create email.
-	Create(ctx context.Context, email *Email) error
+	Create(ctx context.Context, email *domain.Email) error
 }
 
 type emailRepository struct {
@@ -28,7 +29,7 @@ func NewEmailRepository(db *sqlx.DB) EmailRepository {
 	}
 }
 
-func (r *emailRepository) Create(ctx context.Context, email *Email) error {
+func (r *emailRepository) Create(ctx context.Context, email *domain.Email) error {
 	op := "EmailRepository.Create"
 	query := `
 	INSERT INTO emails (id, sender, reciever, subject, body, is_html, sent_at)

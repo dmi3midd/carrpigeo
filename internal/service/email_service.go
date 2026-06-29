@@ -1,9 +1,10 @@
-package email
+package service
 
 import (
 	"bytes"
 	"carrpigeo/internal/config"
-	"carrpigeo/internal/htmltemplate"
+	"carrpigeo/internal/domain"
+	"carrpigeo/internal/repository"
 	"context"
 	"errors"
 	"fmt"
@@ -30,22 +31,22 @@ type EmailService interface {
 type emailService struct {
 	config       *config.SMTP
 	client       EmailClient
-	repository   EmailRepository
-	templateRepo htmltemplate.HTMLTemplateRepository
+	emailRepo    repository.EmailRepository
+	templateRepo repository.HTMLTemplateRepository
 }
 
-func NewEmailService(client EmailClient, repository EmailRepository, templateRepo htmltemplate.HTMLTemplateRepository, cfg *config.SMTP) EmailService {
+func NewEmailService(client EmailClient, emailRepo repository.EmailRepository, templateRepo repository.HTMLTemplateRepository, cfg *config.SMTP) EmailService {
 	return &emailService{
 		config:       cfg,
 		client:       client,
-		repository:   repository,
+		emailRepo:    emailRepo,
 		templateRepo: templateRepo,
 	}
 }
 
 func (s *emailService) Send(ctx context.Context, to, subject, body string) error {
 	op := "EmailService.Send"
-	email := Email{
+	email := domain.Email{
 		ID:       xid.New().String(),
 		Sender:   s.config.User,
 		Reciever: to,
@@ -57,7 +58,7 @@ func (s *emailService) Send(ctx context.Context, to, subject, body string) error
 		return fmt.Errorf("%s: %w: %w", op, ErrFailedToSendEmail, err)
 	}
 
-	if err := s.repository.Create(ctx, &email); err != nil {
+	if err := s.emailRepo.Create(ctx, &email); err != nil {
 		return fmt.Errorf("%s: %w: %w", op, ErrFailedToSaveEmail, err)
 	}
 
@@ -82,7 +83,7 @@ func (s *emailService) SendWithTemplate(ctx context.Context, to, subject, templa
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	email := Email{
+	email := domain.Email{
 		ID:       xid.New().String(),
 		Sender:   s.config.User,
 		Reciever: to,
@@ -96,7 +97,7 @@ func (s *emailService) SendWithTemplate(ctx context.Context, to, subject, templa
 		return fmt.Errorf("%s: %w: %w", op, ErrFailedToSendEmail, err)
 	}
 
-	if err := s.repository.Create(ctx, &email); err != nil {
+	if err := s.emailRepo.Create(ctx, &email); err != nil {
 		return fmt.Errorf("%s: %w: %w", op, ErrFailedToSaveEmail, err)
 	}
 

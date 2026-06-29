@@ -1,4 +1,4 @@
-package database
+package postgres
 
 import (
 	"carrpigeo/internal/config"
@@ -16,7 +16,7 @@ import (
 )
 
 // Service represents a service that interacts with a database.
-type DBService interface {
+type PostgresService interface {
 	// Health returns a map of health status information.
 	// The keys and values in the map are service-specific.
 	Health() map[string]string
@@ -29,12 +29,12 @@ type DBService interface {
 	GetDB() *sqlx.DB
 }
 
-type dbService struct {
+type postgresService struct {
 	cfg *config.Database
 	db  *sqlx.DB
 }
 
-func New(cfg *config.Database) (DBService, error) {
+func New(cfg *config.Database) (PostgresService, error) {
 	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s", cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Name, cfg.SSLMode)
 	db, err := sqlx.Connect("pgx", connStr)
 	if err != nil {
@@ -49,7 +49,7 @@ func New(cfg *config.Database) (DBService, error) {
 		log.Fatal(err)
 	}
 
-	return &dbService{
+	return &postgresService{
 		cfg: cfg,
 		db:  db,
 	}, nil
@@ -57,7 +57,7 @@ func New(cfg *config.Database) (DBService, error) {
 
 // Health checks the health of the database connection by pinging the database.
 // It returns a map with keys indicating various health statistics.
-func (s *dbService) Health() map[string]string {
+func (s *postgresService) Health() map[string]string {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
@@ -110,12 +110,12 @@ func (s *dbService) Health() map[string]string {
 // It logs a message indicating the disconnection from the specific database.
 // If the connection is successfully closed, it returns nil.
 // If an error occurs while closing the connection, it returns the error.
-func (s *dbService) Close() error {
+func (s *postgresService) Close() error {
 	log.Printf("Disconnected from database: %s", s.cfg.Name)
 	return s.db.Close()
 }
 
 // GetDB returns the database connection pool.
-func (s *dbService) GetDB() *sqlx.DB {
+func (s *postgresService) GetDB() *sqlx.DB {
 	return s.db
 }

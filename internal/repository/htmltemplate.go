@@ -1,6 +1,7 @@
-package htmltemplate
+package repository
 
 import (
+	"carrpigeo/internal/domain"
 	"context"
 	"database/sql"
 	"errors"
@@ -16,9 +17,9 @@ var (
 type HTMLTemplateRepository interface {
 	// GetByID returns html template by id.
 	// Returns [ErrNoTemplate] if html template not found.
-	GetByID(ctx context.Context, id string) (*HTMLTemplate, error)
+	GetByID(ctx context.Context, id string) (*domain.HTMLTemplate, error)
 	// Create creates template in db.
-	Create(ctx context.Context, template *HTMLTemplate) error
+	Create(ctx context.Context, template *domain.HTMLTemplate) error
 	// Delete deletes template from db.
 	Delete(ctx context.Context, id string) error
 }
@@ -33,9 +34,9 @@ func NewHTMLTemplateRepository(db *sqlx.DB) HTMLTemplateRepository {
 	}
 }
 
-func (r *htmlTemplateRepository) GetByID(ctx context.Context, id string) (*HTMLTemplate, error) {
+func (r *htmlTemplateRepository) GetByID(ctx context.Context, id string) (*domain.HTMLTemplate, error) {
 	op := "HTMLTemplateRepository.GetByID"
-	var tmpl HTMLTemplate
+	var tmpl domain.HTMLTemplate
 	query := `
 	SELECT id, name, content, created_at
 	FROM html_templates
@@ -51,7 +52,7 @@ func (r *htmlTemplateRepository) GetByID(ctx context.Context, id string) (*HTMLT
 	return &tmpl, nil
 }
 
-func (r *htmlTemplateRepository) Create(ctx context.Context, template *HTMLTemplate) error {
+func (r *htmlTemplateRepository) Create(ctx context.Context, template *domain.HTMLTemplate) error {
 	op := "HTMLTemplateRepository.Create"
 	query := `
 	INSERT INTO html_templates (id, name, content, created_at)

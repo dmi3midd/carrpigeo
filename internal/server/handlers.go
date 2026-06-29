@@ -2,7 +2,7 @@ package server
 
 import (
 	errs "carrpigeo/internal/apierrors"
-	"carrpigeo/internal/htmltemplate"
+	"carrpigeo/internal/service"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -54,7 +54,7 @@ func (s *Server) CreateHTMLTemplateHandler(w http.ResponseWriter, r *http.Reques
 	ctx := r.Context()
 	id, err := s.templateService.Save(ctx, name, &file)
 	if err != nil {
-		if errors.Is(err, htmltemplate.ErrInvalidFileType) {
+		if errors.Is(err, service.ErrInvalidFileType) {
 			return errs.NewBadRequestError(err, "Invalid file type")
 		}
 		return errs.NewInternalServerError(err)

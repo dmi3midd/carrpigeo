@@ -1,6 +1,8 @@
-package htmltemplate
+package service
 
 import (
+	"carrpigeo/internal/domain"
+	"carrpigeo/internal/repository"
 	"carrpigeo/internal/utils"
 	"context"
 	"errors"
@@ -25,14 +27,14 @@ type HTMLTemplateService interface {
 	Remove(ctx context.Context, id string) error
 	// GetByID returns html template by id.
 	// Returns [ErrTemplateNotFound] if template not found.
-	GetByID(ctx context.Context, id string) (*HTMLTemplate, error)
+	GetByID(ctx context.Context, id string) (*domain.HTMLTemplate, error)
 }
 
 type htmlTemplateService struct {
-	repo HTMLTemplateRepository
+	repo repository.HTMLTemplateRepository
 }
 
-func NewHTMLTemplateService(repo HTMLTemplateRepository) HTMLTemplateService {
+func NewHTMLTemplateService(repo repository.HTMLTemplateRepository) HTMLTemplateService {
 	return &htmlTemplateService{
 		repo: repo,
 	}
@@ -55,7 +57,7 @@ func (s *htmlTemplateService) Save(ctx context.Context, name string, file *multi
 	}
 
 	id := xid.New().String()
-	tmpl := &HTMLTemplate{
+	tmpl := &domain.HTMLTemplate{
 		ID:        id,
 		Name:      name,
 		Content:   string(contentBytes),
@@ -77,11 +79,11 @@ func (s *htmlTemplateService) Remove(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *htmlTemplateService) GetByID(ctx context.Context, id string) (*HTMLTemplate, error) {
+func (s *htmlTemplateService) GetByID(ctx context.Context, id string) (*domain.HTMLTemplate, error) {
 	op := "HTMLTemplateService.GetByID"
 	tmpl, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, ErrNoTemplate) {
+		if errors.Is(err, repository.ErrNoTemplate) {
 			return nil, fmt.Errorf("%s: %w", op, ErrTemplateNotFound)
 		}
 		return nil, fmt.Errorf("%s: %w", op, err)
