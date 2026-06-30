@@ -37,7 +37,7 @@ func HandleError(w http.ResponseWriter, r *http.Request, err error) {
 		if err != nil {
 			bytesErr = []byte("Internal server error")
 		}
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Type", "text/plain")
 		http.Error(w,
 			string(bytesErr),
 			apiErr.Code)

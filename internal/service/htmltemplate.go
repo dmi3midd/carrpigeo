@@ -3,7 +3,7 @@ package service
 import (
 	"carrpigeo/internal/domain"
 	"carrpigeo/internal/repository"
-	"carrpigeo/internal/utils"
+	"carrpigeo/internal/shared/utils"
 	"context"
 	"errors"
 	"fmt"
@@ -57,14 +57,14 @@ func (s *htmlTemplateService) Save(ctx context.Context, name string, file *multi
 	}
 
 	id := xid.New().String()
-	tmpl := &domain.HTMLTemplate{
+	tmpl := domain.HTMLTemplate{
 		ID:        id,
 		Name:      name,
 		Content:   string(contentBytes),
 		CreatedAt: time.Now(),
 	}
 
-	if err := s.repo.Create(ctx, tmpl); err != nil {
+	if err := s.repo.Create(ctx, &tmpl); err != nil {
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 

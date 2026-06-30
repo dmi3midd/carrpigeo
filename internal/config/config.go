@@ -2,9 +2,10 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"time"
 
-	"github.com/spf13/viper"
+	"go.yaml.in/yaml/v3"
 )
 
 type Database struct {
@@ -50,18 +51,15 @@ type Config struct {
 }
 
 func LoadConfig() (*Config, error) {
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
-
-	if err := viper.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("failed to read config: %w", err)
+	data, err := os.ReadFile("./config.yaml")
+	if err != nil {
+		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	var cfg Config
-	if err := viper.Unmarshal(&cfg); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config into struct: %w", err)
+	cfg := &Config{}
+	if err := yaml.Unmarshal(data, cfg); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config file: %w", err)
 	}
 
-	return &cfg, nil
+	return cfg, nil
 }

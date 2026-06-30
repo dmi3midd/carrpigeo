@@ -3,8 +3,6 @@ package server
 import (
 	"net/http"
 
-	_ "github.com/joho/godotenv/autoload"
-
 	"carrpigeo/internal/config"
 	"carrpigeo/internal/postgres"
 	"carrpigeo/internal/repository"
@@ -12,22 +10,22 @@ import (
 )
 
 type Server struct {
-	db              postgres.PostgresService
+	postgres        postgres.PostgresService
 	cfg             *config.Config
 	emailService    service.EmailService
 	templateService service.HTMLTemplateService
 }
 
-func NewServer(cfg *config.Config, db postgres.PostgresService) *http.Server {
-	htmlTemplateRepository := repository.NewHTMLTemplateRepository(db.GetDB())
+func NewServer(cfg *config.Config, postgres postgres.PostgresService) *http.Server {
+	htmlTemplateRepository := repository.NewHTMLTemplateRepository(postgres.GetDB())
 	htmlTemplateService := service.NewHTMLTemplateService(htmlTemplateRepository)
 
-	emailRepository := repository.NewEmailRepository(db.GetDB())
+	emailRepository := repository.NewEmailRepository(postgres.GetDB())
 	emailClient := service.NewEmailClient(&cfg.SMTP)
 	emailService := service.NewEmailService(emailClient, emailRepository, htmlTemplateRepository, &cfg.SMTP)
 
 	s := &Server{
-		db:              db,
+		postgres:        postgres,
 		cfg:             cfg,
 		emailService:    emailService,
 		templateService: htmlTemplateService,

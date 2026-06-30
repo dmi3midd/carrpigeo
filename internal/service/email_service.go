@@ -25,6 +25,8 @@ type EmailService interface {
 	// Returns [ErrFailedToSaveEmail] if failed to save email.
 	Send(ctx context.Context, to, subject, body string) error
 	// SendWithTemplate sends an email using a template.
+	// Returns [ErrFailedToSendEmail] if failed to send email.
+	// Returns [ErrFailedToSaveEmail] if failed to save email.
 	SendWithTemplate(ctx context.Context, to, subject, templateName string, data interface{}) error
 }
 
@@ -52,6 +54,7 @@ func (s *emailService) Send(ctx context.Context, to, subject, body string) error
 		Reciever: to,
 		Subject:  subject,
 		Body:     body,
+		IsHTML:   false,
 		SentAt:   time.Now(),
 	}
 	if err := s.client.Send(&email); err != nil {
@@ -65,15 +68,15 @@ func (s *emailService) Send(ctx context.Context, to, subject, body string) error
 	return nil
 }
 
-func (s *emailService) SendWithTemplate(ctx context.Context, to, subject, templateName string, data interface{}) error {
+func (s *emailService) SendWithTemplate(ctx context.Context, to, subject, templateId string, data interface{}) error {
 	op := "EmailService.SendWithTemplate"
 
-	tmplData, err := s.templateRepo.GetByID(ctx, templateName)
+	tmplData, err := s.templateRepo.GetByID(ctx, templateId)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	tmpl, err := template.New(templateName).Parse(tmplData.Content)
+	tmpl, err := template.New(tmplData.Name).Parse(tmplData.Content)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}

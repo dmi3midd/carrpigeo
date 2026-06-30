@@ -1,7 +1,7 @@
 package server
 
 import (
-	errs "carrpigeo/internal/apierror"
+	errs "carrpigeo/internal/shared/apierror"
 	"encoding/json"
 	"net/http"
 )
@@ -24,7 +24,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 }
 
 func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) error {
-	resp, err := json.Marshal(s.db.Health())
+	resp, err := json.Marshal(s.postgres.Health())
 	if err != nil {
 		return errs.NewInternalServerError(err)
 	}

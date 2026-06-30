@@ -1,8 +1,9 @@
 package server
 
 import (
-	"carrpigeo/internal/apierror"
+	"carrpigeo/internal/shared/apierror"
 	"encoding/json"
+	"errors"
 	"net/http"
 )
 
@@ -44,7 +45,7 @@ func (s *Server) CreateHTMLTemplateHandler(w http.ResponseWriter, r *http.Reques
 		return err
 	}
 	if name == "" {
-		return err
+		return apierror.NewBadRequestError(nil, "Name is required")
 	}
 	defer file.Close()
 
@@ -67,7 +68,7 @@ func (s *Server) CreateHTMLTemplateHandler(w http.ResponseWriter, r *http.Reques
 func (s *Server) RemoveHTMLTemplateHandler(w http.ResponseWriter, r *http.Request) error {
 	id := r.URL.Query().Get("id")
 	if id == "" {
-		return apierror.NewBadRequestError(nil, "ID is required")
+		return apierror.NewBadRequestError(errors.New("ID is required"), "ID is required")
 	}
 
 	ctx := r.Context()

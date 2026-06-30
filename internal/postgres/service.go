@@ -4,8 +4,9 @@ import (
 	"carrpigeo/internal/config"
 	"carrpigeo/migrations"
 	"context"
+	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"strconv"
 	"time"
 
@@ -13,6 +14,12 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/pressly/goose/v3"
+)
+
+var (
+	ErrFailedToConnectDB     = errors.New("failed to connect to database")
+	ErrFailedToSetDialect    = errors.New("failed to set dialect")
+	ErrFailedToRunMigrations = errors.New("failed to run migrations")
 )
 
 // Service represents a service that interacts with a database.
@@ -38,17 +45,30 @@ func New(cfg *config.Database) (PostgresService, error) {
 	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s", cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Name, cfg.SSLMode)
 	db, err := sqlx.Connect("pgx", connStr)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(
+			ErrFailedToConnectDB.Error(),
+			slog.String("error", err.Error()),
+		)
+		return nil, fmt.Errorf("%w: %v", ErrFailedToConnectDB, err)
 	}
 
 	goose.SetBaseFS(migrations.FS)
 	if err := goose.SetDialect("postgres"); err != nil {
-		log.Fatal(err)
+		slog.Error(
+			ErrFailedToSetDialect.Error(),
+			slog.String("error", err.Error()),
+		)
+		return nil, fmt.Errorf("%w: %v", ErrFailedToSetDialect, err)
 	}
 	if err := goose.Up(db.DB, "."); err != nil {
-		log.Fatal(err)
+		slog.Error(
+			ErrFailedToRunMigrations.Error(),
+			slog.String("error", err.Error()),
+		)
+		return nil, fmt.Errorf("%w: %v", ErrFailedToRunMigrations, err)
 	}
 
+	slog.Info("database connected successfully")
 	return &postgresService{
 		cfg: cfg,
 		db:  db,
@@ -68,7 +88,7 @@ func (s *postgresService) Health() map[string]string {
 	if err != nil {
 		stats["status"] = "down"
 		stats["error"] = fmt.Sprintf("db down: %v", err)
-		log.Fatalf("db down: %v", err) // Log the error and terminate the program
+		slog.Error("db down", slog.String("error", err.Error())) // Log the error and terminate the program
 		return stats
 	}
 
@@ -111,7 +131,7 @@ func (s *postgresService) Health() map[string]string {
 // If the connection is successfully closed, it returns nil.
 // If an error occurs while closing the connection, it returns the error.
 func (s *postgresService) Close() error {
-	log.Printf("Disconnected from database: %s", s.cfg.Name)
+	slog.Info("Disconnected from database", slog.String("name", s.cfg.Name))
 	return s.db.Close()
 }
 
