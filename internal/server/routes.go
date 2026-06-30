@@ -1,7 +1,7 @@
 package server
 
 import (
-	errs "carrpigeo/internal/apierrors"
+	errs "carrpigeo/internal/apierror"
 	"encoding/json"
 	"net/http"
 )

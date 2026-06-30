@@ -1,4 +1,4 @@
-package apierrors
+package apierror
 
 import (
 	"encoding/json"
@@ -18,13 +18,13 @@ func ErrorHandler(fn AppHandler) http.HandlerFunc {
 }
 
 func HandleError(w http.ResponseWriter, r *http.Request, err error) {
+	mappedErr := MapError(err)
 	var apiErr APIError
 
-	if errors.As(err, &apiErr) {
+	if errors.As(mappedErr, &apiErr) {
 		slog.Error(
 			"failed to response",
 			slog.String("error", apiErr.Error()),
-			slog.Int("code", apiErr.Code),
 		)
 
 		userErr := UserError{
@@ -35,11 +35,12 @@ func HandleError(w http.ResponseWriter, r *http.Request, err error) {
 
 		bytesErr, err := json.Marshal(userErr)
 		if err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
+			bytesErr = []byte("Internal server error")
 		}
 		w.Header().Set("Content-Type", "application/json")
-		http.Error(w, string(bytesErr), apiErr.Code)
+		http.Error(w,
+			string(bytesErr),
+			apiErr.Code)
 		return
 	}
 
