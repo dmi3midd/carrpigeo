@@ -8,9 +8,9 @@ import (
 )
 
 type EmailRequest struct {
-	To      string `json:"to"`
-	Subject string `json:"subject"`
-	Body    string `json:"body"`
+	To      string `json:"to" validate:"required,email"`
+	Subject string `json:"subject" validate:"required"`
+	Body    string `json:"body" validate:"required"`
 }
 
 func (s *Server) SendEmailHandler(w http.ResponseWriter, r *http.Request) error {
@@ -19,6 +19,10 @@ func (s *Server) SendEmailHandler(w http.ResponseWriter, r *http.Request) error 
 		return err
 	}
 	defer r.Body.Close()
+
+	if err := s.validator.Struct(req); err != nil {
+		return err
+	}
 
 	ctx := r.Context()
 	if err := s.emailService.Send(ctx, req.To, req.Subject, req.Body); err != nil {
@@ -81,10 +85,10 @@ func (s *Server) RemoveHTMLTemplateHandler(w http.ResponseWriter, r *http.Reques
 }
 
 type SendEmailWithTemplateRequest struct {
-	To         string      `json:"to"`
-	Subject    string      `json:"subject"`
-	TemplateID string      `json:"template_id"`
-	Data       interface{} `json:"data"`
+	To         string      `json:"to" validate:"required,email"`
+	Subject    string      `json:"subject" validate:"required"`
+	TemplateID string      `json:"template_id" validate:"required,len=20"`
+	Data       interface{} `json:"data" validate:"required"`
 }
 
 func (s *Server) SendEmailWithTemplateHandler(w http.ResponseWriter, r *http.Request) error {
@@ -93,6 +97,10 @@ func (s *Server) SendEmailWithTemplateHandler(w http.ResponseWriter, r *http.Req
 		return err
 	}
 	defer r.Body.Close()
+
+	if err := s.validator.Struct(req); err != nil {
+		return err
+	}
 
 	if req.To == "" {
 		return apierror.NewBadRequestError(nil, "To is required")

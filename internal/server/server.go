@@ -7,6 +7,8 @@ import (
 	"carrpigeo/internal/postgres"
 	"carrpigeo/internal/repository"
 	"carrpigeo/internal/service"
+
+	"github.com/go-playground/validator/v10"
 )
 
 type Server struct {
@@ -14,9 +16,11 @@ type Server struct {
 	cfg             *config.Config
 	emailService    service.EmailService
 	templateService service.HTMLTemplateService
+	validator       *validator.Validate
 }
 
 func NewServer(cfg *config.Config, postgres postgres.PostgresService) *http.Server {
+	validator := validator.New()
 	htmlTemplateRepository := repository.NewHTMLTemplateRepository(postgres.GetDB())
 	htmlTemplateService := service.NewHTMLTemplateService(htmlTemplateRepository)
 
@@ -29,6 +33,7 @@ func NewServer(cfg *config.Config, postgres postgres.PostgresService) *http.Serv
 		cfg:             cfg,
 		emailService:    emailService,
 		templateService: htmlTemplateService,
+		validator:       validator,
 	}
 
 	router := s.RegisterRoutes()
