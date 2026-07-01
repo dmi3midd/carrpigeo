@@ -14,3 +14,11 @@
 - Added template file type validation.
 - Added file size restriction for template upload.
 - Minor code refactoring.
+
+## [v0.0.4] - 2026-07-01
+
+- Refactored project structure.
+- Improved error handling.
+- Added request validation.
+- Changed viper to yaml.
+- Minor bug fixes.
