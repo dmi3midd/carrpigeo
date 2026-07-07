@@ -22,3 +22,7 @@
 - Added request validation.
 - Changed viper to yaml.
 - Minor bug fixes.
+
+## [v0.0.5] - 2026-07-07
+
+- Updated configuration struct tags to match yaml keys.
