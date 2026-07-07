@@ -9,7 +9,7 @@ import (
 )
 
 type Database struct {
-	Name         string        `yaml:"dbname"`
+	Name         string        `yaml:"name"`
 	Host         string        `yaml:"host"`
 	Port         int           `yaml:"port"`
 	User         string        `yaml:"user"`
@@ -21,33 +21,33 @@ type Database struct {
 }
 
 type HTTPServer struct {
-	Address      string        `mapstructure:"address"`
-	IdleTimeout  time.Duration `mapstructure:"idleTimeout"`
-	ReadTimeout  time.Duration `mapstructure:"readTimeout"`
-	WriteTimeout time.Duration `mapstructure:"writeTimeout"`
-	CORS         CORS          `mapstructure:"cors"`
+	Address      string        `yaml:"address"`
+	IdleTimeout  time.Duration `yaml:"idleTimeout"`
+	ReadTimeout  time.Duration `yaml:"readTimeout"`
+	WriteTimeout time.Duration `yaml:"writeTimeout"`
+	CORS         CORS          `yaml:"cors"`
 }
 
 type CORS struct {
-	AllowedOrigins []string `mapstructure:"allowedOrigins"`
+	AllowedOrigins []string `yaml:"allowedOrigins"`
 }
 
 type SMTP struct {
-	Host     string `mapstructure:"host"`
-	Port     int    `mapstructure:"port"`
-	User     string `mapstructure:"user"`
-	Password string `mapstructure:"password"`
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
 }
 
 type Log struct {
-	LogPath string `mapstructure:"logPath"`
+	LogPath string `yaml:"logPath"`
 }
 
 type Config struct {
-	Database   `mapstructure:"database"`
-	HTTPServer `mapstructure:"httpServer"`
-	SMTP       `mapstructure:"smtp"`
-	Log        `mapstructure:"log"`
+	Database   `yaml:"database"`
+	HTTPServer `yaml:"httpServer"`
+	SMTP       `yaml:"smtp"`
+	Log        `yaml:"log"`
 }
 
 func LoadConfig() (*Config, error) {
